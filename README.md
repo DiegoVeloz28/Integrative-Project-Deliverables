@@ -1,7 +1,7 @@
 Project: 64-bit Kernel Build (Part 2)
 Group Members:
 
-Diego "DAVE" (Compilation and Architecture Correction)
+Diego Veloz (Compilation and Architecture Correction)
 
 Flavio Granizo
 
