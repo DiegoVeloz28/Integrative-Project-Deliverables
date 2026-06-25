@@ -64,11 +64,20 @@ https://youtu.be/NhTggZ6UM4I
 
 
 
+Technical Explanation of Network Segmentation and Attack Vectors
+
+The lab design implements a *Defense in Depth* strategy by emulating the perimeter and internal infrastructure of a real organization using two completely isolated network segments:
+
+*Perimeter Zone / DMZ (br_public - 172.16.10.0/24):* This segment simulates the company's public face exposed to the Internet (Attacker Network / Debian Host). It hosts the services for direct interaction with external users (p-web-01, p-web-02, and p-ftp-01). Lacking restrictive host-level firewalls within the Docker bridge, it allows for direct enumeration and service fingerprinting using tools like Nmap.
+
+*Perimeter Zone / DMZ (br_public - 172.16.10.0/24):* * *Internal Corporate Zone (br_corporate - 10.1.0.0/24):* High-security segment that protects critical production assets (databases c-db-01, c-db-02, and the cache server c-redis-01). These machines have no port mapping to the attacking host or internet access, making them completely invisible and inaccessible from the external perimeter during the initial reconnaissance phase.
+
+* *Access Pivot / Bastion (p-jumpbox-01):* Designed using a *Dual-Homed* architecture, it is the only container simultaneously connected to both Docker Compose networks. It acts as the only legitimate bridge for transition and control, requiring any interaction or administration with the corporate network to first compromise or authenticate through this intermediate node (pivoting techniques).
 
 ## PART 3.A — Lab up and running
 
-### 1. Tabla de Arquitectura del Laboratorio
-Mapeo de los contenedores desplegados, sus nombres, roles y asignación de direccionamiento IP dentro de las dos redes aisladas creadas por Docker Compose:
+### 1. Lab Architecture Table
+Mapping of deployed containers, their names, roles, and IP address assignment within the two isolated networks created by Docker Compose:
 
 | Máquina (Contenedor) | Red Pública (172.16.10.0/24) | Red Corporativa (10.1.0.0/24) | Rol / Función |
 | :--- | :--- | :--- | :--- |
@@ -104,22 +113,23 @@ Mapeo de los contenedores desplegados, sus nombres, roles y asignación de direc
 ┌──────────┐ ┌──────────┐ ┌──────────┐
 │ c-db-01  │ │ c-db-02  │ │c-redis-01│
 └──────────┘ └──────────┘ └──────────┘
-### 3. Evidencias del Despliegue
-* Despliegue completado de forma íntegra tras la expansión del contenedor criptográfico y la asignación dinámica de volúmenes lógicos con LVM.
-* Comandos validados mediante capturas del laboratorio (`make deploy`, `make test`, `docker ps` y `ip addr`).
+### 3. Deployment Evidence
+* Deployment fully completed after expanding the cryptographic container and dynamically allocating logical volumes with LVM.
+
+* Commands validated through lab screenshots (`make deploy`, `make test`, `docker ps`, and `ip addr`).
 
 ---
 
 ## PART 3.B — Hacking Technique: Advanced Port Scanning & Service Fingerprinting
+### 1. What does the technique do?
+The **Nmap** tool was used with the full port scan flag (`-p-`) and active version detection (`-sV`). This technique interacts with services by sending data probes to capture their banners and accurately identify the backend software, frameworks, and exact versions being run (fingerprinting).
 
-### 1. ¿Qué hace la técnica?
-Se utilizó la herramienta **Nmap** con la bandera de escaneo completo de puertos (`-p-`) y detección activa de versiones (`-sV`). Esta técnica interactúa con los servicios enviando sondas de datos para capturar sus banners e identificar con precisión el software de backend, frameworks y versiones exactas que se están ejecutando (Fingerprinting).
+### 2. Why does it work in this lab?
+It works because the attacking host is directly connected to the public network's bridge interface (`br_public: 172.16.10.1`). Since there is no intermediate firewall blocking traffic within the segment, Nmap can freely scan the IPs assigned to the containers and force the applications to respond, revealing their internal configuration.
 
-### 2. ¿Por qué funciona en este laboratorio?
-Funciona debido a que el host atacante se encuentra conectado directamente a la interfaz puente de la red pública (`br_public: 172.16.10.1`). Al no existir un firewall intermedio bloqueando el tráfico dentro del segmento, Nmap puede escanear libremente las IPs asignadas a los contenedores y forzar a las aplicaciones a responder revelando su configuración interna.
+### 3. Technical Interpretation of the Results Obtained
+Advanced Nmap analysis of the public perimeter yielded critical data revealing misconfigurations in the simulated environment:
 
-### 3. Interpretación Técnica de los Resultados Obtenidos
-El análisis avanzado de Nmap sobre el perímetro público arrojó datos críticos que revelan malas configuraciones del entorno simulado:
+* **p-web-01 (172.16.10.10):** The web server was found to be exposing a non-standard port: **8081/TCP**. Fingerprinting precisely identified that it is running a **Werkzeug httpd 3.0.1 server on Python 3.12.3 (Flask)**. If Debug Mode is enabled by default, this environment would allow remote code execution (RCE) through its interactive console.
 
-* **p-web-01 (172.16.10.10):** Se descubrió que el servidor web expone un puerto no estándar: **8081/TCP**. El fingerprinting identificó de forma exacta que corre un servidor **Werkzeug httpd 3.0.1 sobre Python 3.12.3 (Flask)**. Si el modo de depuración (Debug Mode) se encuentra activo por omisión, este entorno permitiría la ejecución remota de código (RCE) a través de su consola interactiva.
-* **p-ftp-01 (172.16.10.12):** Expone un servicio web en el puerto **80/TCP** corriendo un servidor **Apache httpd 2.4.57 sobre Debian**, abriendo un vector secundario de enumeración de vulnerabilidades conocidas (CVEs).
+* * **p-ftp-01 (172.16.10.12):** Exposes a web service on port **80/TCP** running an **Apache httpd 2.4.57 server on Debian**, opening a secondary vector for enumerating known vulnerabilities (CVEs).
