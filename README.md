@@ -7,7 +7,7 @@
 
 **Materia:** Seguridad en Sistemas Operativos  
 **Universidad:** Universidad Internacional del Ecuador (UIDE)
-## PAR1 
+## PART1 
 Modification Process (Cubic Environment)
 To achieve the customization of this distribution, we entered the chroot environment using the Cubic tool and executed the following commands as root user.
 
