@@ -7,8 +7,41 @@
 
 **Materia:** Seguridad en Sistemas Operativos  
 **Universidad:** Universidad Internacional del Ecuador (UIDE)
+## PAR1 
+Modification Process (Cubic Environment)
+To achieve the customization of this distribution, we entered the chroot environment using the Cubic tool and executed the following commands as root user.
 
+1. Base System Update
+Before injecting the packages, the Ubuntu repositories were synchronized:
+
+Bash
+apt update && apt upgrade -y
+2. Tool Injection (Actual Modifications)
+The three packages required for the project were installed, justifying their use in the Live environment:
+
+Java (Development Environment): Vital for compiling and executing object-oriented projects directly from memory.
+
+Bash
+apt install default-jdk -y
+Hashcat (Auditing): A brute-force tool injected to perform security tests on the system.
+
+Bash
+apt install hashcat -y
+Neovim (Text Editing): A replacement for the standard editor, necessary for editing code and configuration files without depending on a graphical interface.
+
+Bash
+apt install neovim -y
+3. Persistence Configuration (/etc/skel)
+To ensure that any new user created in the distribution inherits the work structure, the system skeleton was modified by creating default directories:
+
+Bash
+mkdir -p /etc/skel/Proyectos
+mkdir -p /etc/skel/Laboratorio
+(Note: These directories are now automatically copied to the /home folder of every new user).
+https://youtu.be/NhTggZ6UM4I
 ---
+## PART 2.
+
 
 ## PART 3.A — Lab up and running
 
