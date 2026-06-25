@@ -39,6 +39,9 @@ mkdir -p /etc/skel/Proyectos
 mkdir -p /etc/skel/Laboratorio
 (Note: These directories are now automatically copied to the /home folder of every new user).
 https://youtu.be/NhTggZ6UM4I
+
+ISO:
+https://drive.google.com/file/d/1slqoS02NVKCfW4oIoUoeFjIgODWpP4G2/view?usp=sharing
 ---
 ## PART 2.
 [ INTERNET / RED ATACANTE (Debian Host) ]
